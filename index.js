@@ -1,6 +1,8 @@
 const express = require("express");
 const { UserModel, TodoModel, connectToDatabase } = require("./db");
 const { jwt, auth } = require("./auth");
+const { hashPassword, comparePassword } = require("./utils");
+const { hash } = require("bcrypt");
 
 const app = express();
 app.use(express.json());
@@ -22,31 +24,31 @@ app.post("/signup", async (req, res) => {
         return res.status(400).json({
             message: "Please provide all three requirements!",
         });
-    } else {
-        try {
-            console.log("Attempting to create new user...");
-            const result = await UserModel.create({
-                name,
-                email,
-                password,
-            });
-            console.log("User created successfully:", result);
+    }
 
-            return res.status(201).json({
-                message: "Successfully signed up!",
-                user: {
-                    name: result.name,
-                    email: result.email,
-                },
-            });
-        } catch (error) {
-            console.error(
-                `Encountered an error during signup: ${error.message}`
-            );
-            return res.status(500).json({
-                message: "Failed to signup!",
-            });
-        }
+    const hashedPassword = await hashPassword(password);
+
+    try {
+        console.log("Attempting to create new user...");
+        const result = await UserModel.create({
+            name: name,
+            email: email,
+            password: hashedPassword,
+        });
+        console.log("User created successfully:", result);
+
+        return res.status(201).json({
+            message: "Successfully signed up!",
+            user: {
+                name: result.name,
+                email: result.email,
+            },
+        });
+    } catch (error) {
+        console.error(`Encountered an error during signup: ${error.message}`);
+        return res.status(500).json({
+            message: "Failed to signup!",
+        });
     }
 });
 
@@ -54,18 +56,14 @@ app.post("/signin", async (req, res) => {
     console.log("Received signin request");
     console.log("Request body:", req.body);
 
-    const email = req.body.email;
-    const password = req.body.password;
+    const { email, password } = req.body;
 
     try {
         console.log("Attempting to find user...");
-        const user = await UserModel.findOne({
-            email,
-            password,
-        });
+        const user = await UserModel.findOne({ email });
         console.log("User search result:", user);
 
-        if (!user) {
+        if (!user || !(await comparePassword(password, user.password))) {
             console.log("Invalid credentials provided");
             return res.status(401).json({
                 message: "Invalid Credentials",

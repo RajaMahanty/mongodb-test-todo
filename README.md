@@ -82,3 +82,12 @@ The application uses the following environment variables:
 -   `PORT`: Port number for the server (defaults to 3000)
 
 Make sure to set these variables in your `.env` file before running the application. You can use the provided `.env.example` as a template.
+
+## Known Issues and Future Improvements
+
+1. Password is not hashed ✔️
+2. A single crash (duplicate email) crashes the whole app
+3. Add more endpoints (mark todo as done)
+4. Add timestamp at which todo was created/the time it needs to be done by
+5. Relationships in Mongo
+6. Add validations to ensure email and password are correct format
