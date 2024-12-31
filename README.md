@@ -1,8 +1,8 @@
-# MongoDB Improved
+# MongoDB Test Todo
 
 ## Overview
 
-MongoDB Improved is a Node.js application that provides a RESTful API for user authentication and todo management. It leverages Express for handling HTTP requests, Mongoose for MongoDB interactions, and JSON Web Tokens (JWT) for secure authentication.
+MongoDB Test Todo is a Node.js application that provides a RESTful API for user authentication and todo management. It leverages Express for handling HTTP requests, Mongoose for MongoDB interactions, and JSON Web Tokens (JWT) for secure authentication.
 
 ## Features
 
@@ -28,18 +28,26 @@ MongoDB Improved is a Node.js application that provides a RESTful API for user a
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/mongodb-improved.git
+    git clone https://github.com/RajaMahanty/mongodb-test-todo.git
     ```
 
 2. Navigate to the project directory:
 
     ```bash
-    cd mongodb-improved
+    cd mongodb-test-todo
     ```
 
 3. Install dependencies:
+
     ```bash
     npm install
+    ```
+
+4. Create a `.env` file in the root directory and add your environment variables:
+    ```
+    MONGODB_URI=your_mongodb_connection_string
+    JWT_SECRET=your_jwt_secret
+    PORT=3000
     ```
 
 ## Usage
@@ -47,10 +55,16 @@ MongoDB Improved is a Node.js application that provides a RESTful API for user a
 1. Start the server:
 
     ```bash
-    node index.js
+    npm start
     ```
 
-2. The server will be running on `http://localhost:3000`.
+    Or for development with auto-reload:
+
+    ```bash
+    npm run dev
+    ```
+
+2. The server will be running on `http://localhost:3000` (or the PORT specified in your .env file).
 
 ## API Endpoints
 
@@ -59,13 +73,12 @@ MongoDB Improved is a Node.js application that provides a RESTful API for user a
 -   **POST /todo**: Create a new todo item (requires authentication).
 -   **GET /todos**: Retrieve all todos for the authenticated user.
 
-## MongoDB connection
+## Environment Variables
 
-To set up the MongoDB connection:
+The application uses the following environment variables:
 
-1. Create a MongoDB Atlas account or use your local MongoDB installation
-2. Replace the connection string in `db.js` with your own:
-    ```javascript
-    mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>
-    ```
-3. Set your JWT secret key in `auth.js` by updating the `JWT_SECRET` variable
+-   `MONGODB_URI`: Your MongoDB connection string
+-   `JWT_SECRET`: Secret key for JWT token generation/validation
+-   `PORT`: Port number for the server (defaults to 3000)
+
+Make sure to set these variables in your `.env` file before running the application. You can use the provided `.env.example` as a template.
