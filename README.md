@@ -86,8 +86,8 @@ Make sure to set these variables in your `.env` file before running the applicat
 ## Known Issues and Future Improvements
 
 1. Password is not hashed ✔️
-2. A single crash (duplicate email) crashes the whole app
+2. A single crash (duplicate email) crashes the whole app ✔️
 3. Add more endpoints (mark todo as done)
-4. Add timestamp at which todo was created/the time it needs to be done by
+4. Add timestamp at which todo was created/the time it needs to be done by ✔️
 5. Relationships in Mongo
-6. Add validations to ensure email and password are correct format
+6. Add validations to ensure email and password are correct format ✔️

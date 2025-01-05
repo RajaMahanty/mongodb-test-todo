@@ -7,11 +7,11 @@ const ObjectId = mongoose.ObjectId;
 async function connectToDatabase() {
     try {
         const result = await mongoose.connect(process.env.MONGODB_URI);
-        console.log(`Connected to database: ${result.connection.host}`);
-        console.log(`Database name: ${result.connection.name}`);
-        console.log(`Connection port: ${result.connection.port}`);
+        console.log(
+            `Database connected successfully to ${result.connection.host}:${result.connection.port}/${result.connection.name}`
+        );
     } catch (e) {
-        console.error(`Failed to connect to the database: ${e.message}`);
+        console.error(`Database connection failed: ${e.message}`);
     }
 }
 
@@ -26,6 +26,9 @@ const Todo = new Schema({
     title: String,
     done: Boolean,
 });
+
+User.set("timestamps", true);
+Todo.set("timestamps", true);
 
 const UserModel = new mongoose.model("users", User);
 const TodoModel = new mongoose.model("todos", Todo);

@@ -2,40 +2,34 @@ const express = require("express");
 const { UserModel, TodoModel, connectToDatabase } = require("./db");
 const { jwt, auth } = require("./auth");
 const { hashPassword, comparePassword } = require("./utils");
-const { hash } = require("bcrypt");
+const { signUpSchema, signInSchema, todoSchema } = require("./inpvalid");
 
 const app = express();
 app.use(express.json());
 
 // connecting to the database
-console.log("Attempting to connect to database...");
+console.log("Server starting...");
 connectToDatabase();
 
 app.post("/signup", async (req, res) => {
-    console.log("Received signup request");
-    console.log("Request body:", req.body);
+    const result = signUpSchema.safeParse(req.body);
 
-    const name = req.body.name;
-    const email = req.body.email;
-    const password = req.body.password;
-
-    if (!name || !email || !password) {
-        console.log("Missing required fields in signup request");
+    if (!result.success) {
         return res.status(400).json({
-            message: "Please provide all three requirements!",
+            message: "Invalid request body",
+            errors: result.error.errors,
         });
     }
 
+    const { name, email, password } = result.data;
     const hashedPassword = await hashPassword(password);
 
     try {
-        console.log("Attempting to create new user...");
         const result = await UserModel.create({
-            name: name,
-            email: email,
+            name,
+            email,
             password: hashedPassword,
         });
-        console.log("User created successfully:", result);
 
         return res.status(201).json({
             message: "Successfully signed up!",
@@ -45,7 +39,7 @@ app.post("/signup", async (req, res) => {
             },
         });
     } catch (error) {
-        console.error(`Encountered an error during signup: ${error.message}`);
+        console.error(`Signup error: ${error.message}`);
         return res.status(500).json({
             message: "Failed to signup!",
         });
@@ -53,25 +47,26 @@ app.post("/signup", async (req, res) => {
 });
 
 app.post("/signin", async (req, res) => {
-    console.log("Received signin request");
-    console.log("Request body:", req.body);
+    const result = signInSchema.safeParse(req.body);
 
-    const { email, password } = req.body;
+    if (!result.success) {
+        return res.status(400).json({
+            message: "Invalid request body",
+            errors: result.error.errors,
+        });
+    }
+
+    const { email, password } = result.data;
 
     try {
-        console.log("Attempting to find user...");
         const user = await UserModel.findOne({ email });
-        console.log("User search result:", user);
 
         if (!user || !(await comparePassword(password, user.password))) {
-            console.log("Invalid credentials provided");
             return res.status(401).json({
                 message: "Invalid Credentials",
             });
         }
 
-        console.log("User found, generating token...");
-        // Use promisified version of jwt.sign
         jwt.sign(
             { userId: user._id.toString() },
             process.env.JWT_SECRET,
@@ -82,12 +77,11 @@ app.post("/signin", async (req, res) => {
                         message: "Token generation failed",
                     });
                 }
-                console.log("Token generated successfully");
                 return res.status(200).json({ token });
             }
         );
     } catch (error) {
-        console.error(`Encountered an error during signin: ${error.message}`);
+        console.error(`Signin error: ${error.message}`);
         return res.status(500).json({
             message: "Failed to sign in due to server error!",
         });
@@ -95,38 +89,30 @@ app.post("/signin", async (req, res) => {
 });
 
 app.post("/todo", auth, async (req, res) => {
-    console.log("Received request to create todo");
-    console.log("Request body:", req.body);
-
     const userId = req.userId;
-    console.log("User ID from token:", userId);
+    const result = todoSchema.safeParse(req.body);
 
-    const title = req.body.title;
-    const done = req.body.done;
-    console.log("Title:", title);
-    console.log("Done:", done);
-
-    if (!title || done === undefined) {
-        console.log("Missing required fields");
-        return res
-            .status(400)
-            .json({ message: "Provide both fields title and done" });
+    if (!result.success) {
+        return res.status(400).json({
+            message: "Invalid todo data",
+            errors: result.error.errors,
+        });
     }
 
+    const { title, done } = result.data;
+
     try {
-        console.log("Attempting to create todo...");
         const result = await TodoModel.create({
             userId,
             title,
             done,
         });
-        console.log("Todo created successfully:", result);
         return res.status(201).json({
             message: "Todo created successfully",
             todo: result,
         });
     } catch (e) {
-        console.error(`Failed to create todo: ${e.message}`);
+        console.error(`Todo creation error: ${e.message}`);
         return res.status(500).json({
             message: "Failed to create todo",
         });
@@ -134,20 +120,16 @@ app.post("/todo", auth, async (req, res) => {
 });
 
 app.get("/todos", auth, async (req, res) => {
-    console.log("Received request to get todos");
     const userId = req.userId;
-    console.log("User ID from token:", userId);
 
     try {
-        console.log("Attempting to fetch todos...");
         const todos = await TodoModel.find({ userId });
-        console.log("Todos fetched successfully:", todos);
         return res.status(200).json({
             message: "Todos fetched successfully",
             todos,
         });
     } catch (e) {
-        console.error(`Failed to fetch todos: ${e.message}`);
+        console.error(`Todo fetch error: ${e.message}`);
         return res.status(500).json({
             message: "Failed to fetch todos",
         });
@@ -155,7 +137,5 @@ app.get("/todos", auth, async (req, res) => {
 });
 
 app.listen(process.env.PORT || 3000, () => {
-    console.log(
-        `Server started. Listening on port no: ${process.env.PORT || 3000}`
-    );
+    console.log(`Server running on port ${process.env.PORT || 3000}`);
 });
